@@ -4,23 +4,6 @@
 
 ---
 
-## Laboratory Work 1: REST API Project Template Setup (Flask)
-
-## Project Goal
-This project serves as a template for subsequent laboratory work. Its main goal is to set up a typical backend development environment using Python/Flask, ensure its containerization with Docker and Docker Compose, and successfully perform deployment on Render.com.
-
-## Key Objectives:
-
-- Develop a minimal web application using Flask.
-
-- Implement the required GET endpoint /healthcheck.
-
-- Configure a Dockerfile for application containerization.
-
-- Create a docker-compose.yaml configuration for local launch.
-
-- Deploy the application on Render.com.
-
 ## Technologies Used
 - Programming Language: Python 3.11+
 
