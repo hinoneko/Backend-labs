@@ -1,48 +1,47 @@
-from flask import request, jsonify
-from app import app
-from app.record.record_service import (
-    create_record_service,
-    get_record_by_id_service,
-    delete_record_service,
+from flask import Blueprint, request, jsonify
+from app.record.record_service import create_record_service, get_record_by_id_service, delete_record_service, \
     get_filtered_records_service
-)
+from app.record.record_schema import RecordSchema
+
+record_bp = Blueprint('record', __name__)
+record_schema = RecordSchema()
+records_schema = RecordSchema(many=True)
 
 
-@app.post('/record')
+@record_bp.route('/record', methods=['POST'])
 def create_record():
-    record_data = request.get_json()
-    result = create_record_service(record_data)
+    data = request.get_json()
 
+    errors = record_schema.validate(data)
+    if errors:
+        return jsonify({"errors": errors}), 400
+
+    result = create_record_service(data)
     if isinstance(result, tuple):
         return jsonify({"error": result[0]}), result[1]
 
-    return jsonify(result), 201
+    return jsonify(record_schema.dump(result)), 201
 
 
-@app.get('/record/<record_id>')
+@record_bp.route('/record/<record_id>', methods=['GET'])
 def get_record(record_id):
     record = get_record_by_id_service(record_id)
     if not record:
         return jsonify({"error": "Record not found"}), 404
-    return jsonify(record)
+    return jsonify(record_schema.dump(record))
 
 
-@app.delete('/record/<record_id>')
+@record_bp.route('/record/<record_id>', methods=['DELETE'])
 def delete_record(record_id):
-    result = delete_record_service(record_id)
-    if result is None:
+    record = delete_record_service(record_id)
+    if not record:
         return jsonify({"error": "Record not found"}), 404
-    return jsonify(result)
+    return jsonify(record_schema.dump(record))
 
 
-@app.get('/record')
+@record_bp.route('/record', methods=['GET'])
 def get_records():
     user_id = request.args.get('user_id')
     category_id = request.args.get('category_id')
-
-    result = get_filtered_records_service(user_id, category_id)
-
-    if isinstance(result, tuple):
-        return jsonify({"error": result[0]}), result[1]
-
-    return jsonify(result)
+    records = get_filtered_records_service(user_id, category_id)
+    return jsonify(records_schema.dump(records))
