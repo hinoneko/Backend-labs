@@ -1,8 +1,9 @@
-from flask import jsonify
+from flask import jsonify, Blueprint
 from datetime import datetime
-from app import app
 
-@app.route('/healthcheck', methods=['GET'])
+views_bp = Blueprint('views', __name__)
+
+@views_bp.route('/healthcheck', methods=['GET'])
 def healthcheck():
     response = {
         "status": "OK",
