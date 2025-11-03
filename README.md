@@ -4,6 +4,10 @@
 
 ---
 
+## Lab Assignment Variant
+- Calculation: `32 mod 3 = 2`
+- Variant: 2. Custom Expense Categories
+
 ## Technologies Used
 - Programming Language: Python 3.11+
 
