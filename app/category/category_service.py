@@ -1,30 +1,37 @@
-import uuid
-from app.storage import categories, records
+from app import db
+from app.models import Category, User
 
 
-def generate_id():
-    return uuid.uuid4().hex
+def create_category_service(data):
+    user_id = data.get('user_id')
+
+    if user_id:
+        user = User.query.get(user_id)
+        if not user:
+            return "User not found", 404
 
 
-def create_category_service(category_data):
-    category_id = generate_id()
-    category = {"id": category_id, **category_data}
-    categories[category_id] = category
+    category = Category(
+        name=data['name'],
+        user_id=user_id
+    )
+    db.session.add(category)
+    db.session.commit()
     return category
 
 
 def get_all_categories_service():
-    return list(categories.values())
+    return Category.query.all()
 
 
-def delete_category_service(category_id):
-    if category_id not in categories:
-        return None
+def delete_category_service(category_id, user_id=None):
+    category = Category.query.get(category_id)
+    if not category:
+        return "Category not found", 404
 
-    deleted_category = categories.pop(category_id)
+    if category.user_id and category.user_id != user_id:
+        return "Access denied", 403
 
-    records_to_delete = [rid for rid, rec in records.items() if rec.get('category_id') == category_id]
-    for rid in records_to_delete:
-        records.pop(rid)
-
-    return deleted_category
+    db.session.delete(category)
+    db.session.commit()
+    return category
