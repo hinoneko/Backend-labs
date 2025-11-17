@@ -12,6 +12,7 @@ class User(db.Model):
 
     id = db.Column(db.String, primary_key=True, default=generate_id)
     username = db.Column(db.String(50), unique=True, nullable=False)
+    password = db.Column(db.String(255), nullable=False)
 
     categories = db.relationship('Category', backref='user', lazy=True)
     records = db.relationship('Record', backref='user', lazy=True)
