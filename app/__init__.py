@@ -10,19 +10,45 @@ db = SQLAlchemy()
 migrate = Migrate()
 jwt = JWTManager()
 
-def is_first_run():
-    return not os.path.exists('migrations')
-
 
 def migrate_db(app):
     with app.app_context():
-        if is_first_run():
+        from sqlalchemy import text, inspect
+
+        was_new = not os.path.exists('migrations')
+        if was_new:
             init()
-            stamp()
+            try:
+                inspector = inspect(db.engine)
+                if 'alembic_version' in inspector.get_table_names():
+                    db.session.execute(text("DELETE FROM alembic_version"))
+                    db.session.commit()
+            except Exception:
+                db.session.rollback()
 
-        fmigrate(message="Auto migration")
+        try:
+            fmigrate(message="Auto migration")
+        except Exception:
+            pass
 
-        upgrade()
+        if os.path.exists('migrations/versions'):
+            try:
+                upgrade()
+            except Exception as e:
+                error_msg = str(e).lower()
+                if 'can\'t locate revision' in error_msg or 'revision' in error_msg:
+                    try:
+                        db.session.execute(text("DELETE FROM alembic_version"))
+                        db.session.commit()
+                        stamp('head')
+                        upgrade()
+                    except Exception:
+                        db.session.rollback()
+                        db.create_all()
+                else:
+                    db.create_all()
+        else:
+            db.create_all()
 
 
 def create_app():
